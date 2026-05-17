@@ -84,10 +84,11 @@ export const useStore = create<AppState>()(
             properties: [newProp, ...state.properties] 
           }))
           toast.success("Property saved to Supabase")
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const dbError = error as { message?: string }
           console.error("Failed to add property to Supabase:", error)
           toast.error("Supabase Sync Failed", {
-            description: "Property saved locally, but not to database. Ensure RLS policies allow inserts."
+            description: dbError.message || "Property saved locally, but not to database. Ensure RLS policies allow inserts."
           })
           
           const localProp: Property = {
