@@ -3,10 +3,10 @@ import { Property, VerificationLog } from './types';
 export const MOCK_PROPERTIES: Property[] = [
   {
     id: '1',
-    name: 'Palm Villa',
-    city: 'Riyadh',
+    title: 'Palm Villa',
+    location: 'Riyadh',
     status: 'available',
-    last_verified_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2h ago
+    last_verified: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2h ago
     owner_confirmed: true,
     agent_confirmed: true,
     price: 4500000,
@@ -14,10 +14,10 @@ export const MOCK_PROPERTIES: Property[] = [
   },
   {
     id: '2',
-    name: 'Marina Tower',
-    city: 'Jeddah',
+    title: 'Marina Tower',
+    location: 'Jeddah',
     status: 'reserved',
-    last_verified_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1d ago
+    last_verified: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1d ago
     owner_confirmed: true,
     agent_confirmed: true,
     price: 2800000,
@@ -25,10 +25,10 @@ export const MOCK_PROPERTIES: Property[] = [
   },
   {
     id: '3',
-    name: 'Elite Residence',
-    city: 'Riyadh',
+    title: 'Elite Residence',
+    location: 'Riyadh',
     status: 'sold',
-    last_verified_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), // 3d ago
+    last_verified: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), // 3d ago
     owner_confirmed: true,
     agent_confirmed: true,
     price: 6200000,
@@ -36,10 +36,10 @@ export const MOCK_PROPERTIES: Property[] = [
   },
   {
     id: '4',
-    name: 'Skyline Apartment',
-    city: 'Khobar',
+    title: 'Skyline Apartment',
+    location: 'Khobar',
     status: 'under_negotiation',
-    last_verified_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45m ago
+    last_verified: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45m ago
     owner_confirmed: true,
     agent_confirmed: true,
     price: 1500000,
@@ -47,10 +47,10 @@ export const MOCK_PROPERTIES: Property[] = [
   },
   {
     id: '5',
-    name: 'Desert Rose Estate',
-    city: 'Riyadh',
+    title: 'Desert Rose Estate',
+    location: 'Riyadh',
     status: 'verification_required',
-    last_verified_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 7d ago
+    last_verified: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), // 7d ago
     owner_confirmed: false,
     agent_confirmed: true,
     price: 8900000,
@@ -58,10 +58,10 @@ export const MOCK_PROPERTIES: Property[] = [
   },
   {
     id: '6',
-    name: 'Business Bay Loft',
-    city: 'Jeddah',
+    title: 'Business Bay Loft',
+    location: 'Jeddah',
     status: 'inactive',
-    last_verified_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(), // 14d ago
+    last_verified: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(), // 14d ago
     owner_confirmed: false,
     agent_confirmed: false,
     price: 950000,

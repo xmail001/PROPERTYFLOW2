@@ -37,22 +37,20 @@ const statusConfig: Record<PropertyStatus, { label: string; variant: "success" |
 
 export function PropertyTable({ search = "" }: { search?: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
-  const { properties, verifyProperty, deleteProperty } = useStore()
+  const { properties, verifyProperty, deleteProperty, settings } = useStore()
 
   const filteredProperties = properties.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.city.toLowerCase().includes(search.toLowerCase()) ||
+    p.title.toLowerCase().includes(search.toLowerCase()) ||
+    p.location.toLowerCase().includes(search.toLowerCase()) ||
     p.id.toLowerCase().includes(search.toLowerCase())
   )
 
   const handleVerify = async (id: string) => {
     setLoadingId(id)
     try {
-      setTimeout(() => {
-        verifyProperty(id, "Ismail Bourhim", "Manual verification performed via dashboard.")
-        setLoadingId(null)
-        toast.success("Property verified successfully")
-      }, 1000)
+      await verifyProperty(id, settings.userName, "Manual verification performed via dashboard.")
+      setLoadingId(null)
+      toast.success("Property verified successfully")
     } catch (error) {
       console.error("Verification failed", error)
       setLoadingId(null)
@@ -60,9 +58,9 @@ export function PropertyTable({ search = "" }: { search?: string }) {
     }
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this listing?")) {
-      deleteProperty(id)
+      await deleteProperty(id)
       toast.success("Property removed from inventory")
     }
   }
@@ -83,20 +81,20 @@ export function PropertyTable({ search = "" }: { search?: string }) {
           {filteredProperties.length > 0 ? (
             filteredProperties.map((property) => (
               <TableRow key={property.id} className="group transition-colors hover:bg-muted/50">
-                <TableCell className="font-medium">
+                <TableCell className="font-medium text-left">
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{property.name}</span>
+                    <span className="text-sm font-semibold">{property.title}</span>
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">REF: {property.id}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{property.city}</TableCell>
-                <TableCell>
+                <TableCell className="text-sm text-muted-foreground text-left">{property.location}</TableCell>
+                <TableCell className="text-left">
                   <Badge variant={statusConfig[property.status].variant} className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase shadow-sm">
                     {statusConfig[property.status].label}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {formatRelativeTime(property.last_verified_at)}
+                <TableCell className="text-xs text-muted-foreground text-left">
+                  {formatRelativeTime(property.last_verified)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

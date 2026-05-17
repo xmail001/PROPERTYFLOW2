@@ -31,28 +31,26 @@ export function AddPropertyModal({ onAdd }: { onAdd?: (property: Partial<Propert
     setIsSubmitting(true)
 
     const formData = new FormData(e.currentTarget)
-    const property: Property = {
-      id: `P-${Math.random().toString(36).substring(7).toUpperCase()}`,
-      name: formData.get("name") as string,
-      city: formData.get("city") as string,
+    const propertyData: Omit<Property, 'id' | 'created_at'> = {
+      title: formData.get("name") as string,
+      location: formData.get("city") as string,
       price: Number(formData.get("price")),
       status: "verification_required",
-      last_verified_at: new Date().toISOString(),
+      last_verified: new Date().toISOString(),
       owner_confirmed: false,
       agent_confirmed: false,
-      created_at: new Date().toISOString(),
     }
 
-    // Simulate API delay but update real state
-    setTimeout(() => {
-      addProperty(property)
+    try {
+      await addProperty(propertyData)
       setIsSubmitting(false)
       setOpen(false)
-      toast.success("Property added successfully", {
-        description: `${property.name} has been added to your inventory and is pending audit.`,
-      })
-      if (onAdd) onAdd(property)
-    }, 1000)
+      toast.success("Property added successfully")
+      if (onAdd) onAdd(propertyData)
+    } catch (error) {
+      console.error(error)
+      setIsSubmitting(false)
+    }
   }
 
   return (

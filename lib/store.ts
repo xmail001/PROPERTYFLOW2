@@ -105,9 +105,10 @@ export const useStore = create<AppState>()(
           await get().syncData()
         } catch (error) {
           console.error("Failed to verify property:", error)
+          // Local fallback
           set((state) => ({
             properties: state.properties.map((p) => 
-              p.id === id ? { ...p, status: 'available', last_verified_at: new Date().toISOString() } : p
+              p.id === id ? { ...p, status: 'available', last_verified: new Date().toISOString(), agent_confirmed: true } : p
             )
           }))
         }
@@ -139,7 +140,7 @@ export const useStore = create<AppState>()(
         
         let flaggedCount = 0
         const updatedProperties = properties.map(p => {
-          const diffHours = (now.getTime() - new Date(p.last_verified_at).getTime()) / (1000 * 60 * 60)
+          const diffHours = (now.getTime() - new Date(p.last_verified).getTime()) / (1000 * 60 * 60)
           if (p.status !== 'verification_required' && diffHours > thresholdHours) {
             flaggedCount++
             return { ...p, status: 'verification_required' as PropertyStatus }

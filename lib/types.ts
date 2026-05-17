@@ -8,13 +8,15 @@ export type PropertyStatus =
 
 export interface Property {
   id: string;
-  name: string;
-  city: string;
+  property_code?: string;
+  title: string;
+  location: string;
+  type?: string;
   status: PropertyStatus;
-  last_verified_at: string; // ISO string
+  last_verified: string; // ISO string
   owner_confirmed: boolean;
   agent_confirmed: boolean;
-  price?: number;
+  price: number;
   image_url?: string;
   created_at: string;
 }
