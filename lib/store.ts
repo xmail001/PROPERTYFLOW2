@@ -2,6 +2,13 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { Property, VerificationLog, PropertyStatus } from './types'
 import { MOCK_PROPERTIES, MOCK_VERIFICATION_LOGS } from './mock-data'
+import { 
+  fetchProperties, 
+  fetchVerificationLogs, 
+  createProperty, 
+  updatePropertyStatus, 
+  deletePropertyFromDb 
+} from './api'
 
 interface AppSettings {
   userName: string
@@ -20,12 +27,14 @@ interface AppState {
   properties: Property[]
   verificationLogs: VerificationLog[]
   settings: AppSettings
+  isLoading: boolean
   
   // Actions
-  addProperty: (property: Property) => void
-  verifyProperty: (id: string, agentName: string, notes: string) => void
+  syncData: () => Promise<void>
+  addProperty: (property: Omit<Property, 'id' | 'created_at'>) => Promise<void>
+  verifyProperty: (id: string, agentName: string, notes: string) => Promise<void>
   updateSettings: (newSettings: Partial<AppSettings>) => void
-  deleteProperty: (id: string) => void
+  deleteProperty: (id: string) => Promise<void>
   runComplianceCheck: () => { flaggedCount: number }
 }
 
@@ -34,6 +43,7 @@ export const useStore = create<AppState>()(
     (set, get) => ({
       properties: MOCK_PROPERTIES,
       verificationLogs: MOCK_VERIFICATION_LOGS,
+      isLoading: false,
       settings: {
         userName: "Ismail Bourhim",
         userEmail: "ismail@propertyflow.com",
@@ -47,40 +57,64 @@ export const useStore = create<AppState>()(
         emailSummaries: false,
       },
 
-      addProperty: (property) => 
-        set((state) => ({ 
-          properties: [property, ...state.properties] 
-        })),
-
-      verifyProperty: (id, agentName, notes) => {
-        const timestamp = new Date().toISOString()
-        const property = get().properties.find(p => p.id === id)
+      syncData: async () => {
+        set({ isLoading: true })
+        const props = await fetchProperties()
+        const logs = await fetchVerificationLogs()
         
-        if (!property) return
-
-        const newLog: VerificationLog = {
-          id: `l-${Math.random().toString(36).substring(7)}`,
-          property_id: id,
-          property_name: property.name,
-          agent_id: 'current-user',
-          agent_name: agentName,
-          status_at_time: 'available',
-          notes: notes,
-          created_at: timestamp,
-        }
-
-        set((state) => ({
-          properties: state.properties.map((p) => 
-            p.id === id ? { ...p, status: 'available', last_verified_at: timestamp, agent_confirmed: true } : p
-          ),
-          verificationLogs: [newLog, ...state.verificationLogs]
-        }))
+        set({ 
+          properties: props && props.length > 0 ? props : get().properties,
+          verificationLogs: logs && logs.length > 0 ? logs : get().verificationLogs,
+          isLoading: false 
+        })
       },
 
-      deleteProperty: (id) => 
-        set((state) => ({
-          properties: state.properties.filter(p => p.id !== id)
-        })),
+      addProperty: async (propertyData) => {
+        try {
+          const newProp = await createProperty(propertyData)
+          set((state) => ({ 
+            properties: [newProp, ...state.properties] 
+          }))
+        } catch (error) {
+          console.error("Failed to add property:", error)
+          // Fallback to local only if Supabase fails
+          const localProp: Property = {
+            ...propertyData,
+            id: `L-${Math.random().toString(36).substring(7)}`,
+            created_at: new Date().toISOString()
+          }
+          set((state) => ({ properties: [localProp, ...state.properties] }))
+        }
+      },
+
+      verifyProperty: async (id, agentName, notes) => {
+        try {
+          await updatePropertyStatus(id, 'available', agentName, notes)
+          await get().syncData()
+        } catch (error) {
+          console.error("Failed to verify property:", error)
+          // Local fallback
+          set((state) => ({
+            properties: state.properties.map((p) => 
+              p.id === id ? { ...p, status: 'available', last_verified_at: new Date().toISOString() } : p
+            )
+          }))
+        }
+      },
+
+      deleteProperty: async (id) => {
+        try {
+          await deletePropertyFromDb(id)
+          set((state) => ({
+            properties: state.properties.filter(p => p.id !== id)
+          }))
+        } catch (error) {
+          console.error("Failed to delete property:", error)
+          set((state) => ({
+            properties: state.properties.filter(p => p.id !== id)
+          }))
+        }
+      },
 
       updateSettings: (newSettings) => 
         set((state) => ({

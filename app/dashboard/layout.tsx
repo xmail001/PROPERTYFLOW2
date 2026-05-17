@@ -8,12 +8,20 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { SupabaseStatus } from "@/components/dashboard/supabase-status"
 import { signOut } from "@/lib/auth"
 import { toast } from "sonner"
+import { useStore } from "@/lib/store"
+import { useEffect } from "react"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const syncData = useStore((state) => state.syncData)
+
+  useEffect(() => {
+    syncData()
+  }, [syncData])
+
   const handleSignOut = async () => {
     try {
       await signOut()
