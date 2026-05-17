@@ -9,6 +9,7 @@ import {
   updatePropertyStatus, 
   deletePropertyFromDb 
 } from './api'
+import { toast } from 'sonner'
 
 interface AppSettings {
   userName: string
@@ -59,14 +60,21 @@ export const useStore = create<AppState>()(
 
       syncData: async () => {
         set({ isLoading: true })
-        const props = await fetchProperties()
-        const logs = await fetchVerificationLogs()
-        
-        set({ 
-          properties: props && props.length > 0 ? props : get().properties,
-          verificationLogs: logs && logs.length > 0 ? logs : get().verificationLogs,
-          isLoading: false 
-        })
+        try {
+          const props = await fetchProperties()
+          const logs = await fetchVerificationLogs()
+          
+          if (props && props.length > 0) {
+            set({ properties: props })
+          }
+          if (logs && logs.length > 0) {
+            set({ verificationLogs: logs })
+          }
+        } catch (error) {
+          console.error("Sync failed:", error)
+        } finally {
+          set({ isLoading: false })
+        }
       },
 
       addProperty: async (propertyData) => {
@@ -75,9 +83,13 @@ export const useStore = create<AppState>()(
           set((state) => ({ 
             properties: [newProp, ...state.properties] 
           }))
-        } catch (error) {
-          console.error("Failed to add property:", error)
-          // Fallback to local only if Supabase fails
+          toast.success("Property saved to Supabase")
+        } catch (error: any) {
+          console.error("Failed to add property to Supabase:", error)
+          toast.error("Supabase Sync Failed", {
+            description: "Property saved locally, but not to database. Ensure RLS policies allow inserts."
+          })
+          
           const localProp: Property = {
             ...propertyData,
             id: `L-${Math.random().toString(36).substring(7)}`,
@@ -93,7 +105,6 @@ export const useStore = create<AppState>()(
           await get().syncData()
         } catch (error) {
           console.error("Failed to verify property:", error)
-          // Local fallback
           set((state) => ({
             properties: state.properties.map((p) => 
               p.id === id ? { ...p, status: 'available', last_verified_at: new Date().toISOString() } : p
