@@ -34,12 +34,27 @@ export async function fetchVerificationLogs() {
 export async function createProperty(property: Omit<Property, 'id' | 'created_at'>) {
   if (!isSupabaseConfigured) throw new Error('Supabase not configured')
 
+  // We only send columns that exist in the user's provided schema
+  const dbData = {
+    title: property.title,
+    location: property.location,
+    price: property.price,
+    status: property.status,
+    last_verified: property.last_verified,
+    // Add these only if you ran the SQL to add them!
+    owner_confirmed: property.owner_confirmed,
+    agent_confirmed: property.agent_confirmed
+  }
+
   const { data, error } = await supabase
     .from('properties')
-    .insert([property])
+    .insert([dbData])
     .select()
 
-  if (error) throw error
+  if (error) {
+    console.error('Supabase Insert Error:', error)
+    throw error
+  }
   return data[0] as Property
 }
 
@@ -53,17 +68,17 @@ export async function updatePropertyStatus(id: string, status: PropertyStatus, a
     .from('properties')
     .update({ 
       status, 
-      last_verified_at: timestamp,
+      last_verified: timestamp,
       agent_confirmed: true 
     })
     .eq('id', id)
 
   if (propError) throw propError
 
-  // 2. Fetch property name for the log
+  // 2. Fetch property title for the log
   const { data: propData } = await supabase
     .from('properties')
-    .select('name')
+    .select('title')
     .eq('id', id)
     .single()
 
@@ -72,7 +87,7 @@ export async function updatePropertyStatus(id: string, status: PropertyStatus, a
     .from('verification_logs')
     .insert([{
       property_id: id,
-      property_name: propData?.name || 'Unknown',
+      property_name: propData?.title || 'Unknown',
       agent_name: agentName,
       status_at_time: status,
       notes,
