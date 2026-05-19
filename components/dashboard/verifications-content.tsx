@@ -24,6 +24,11 @@ export function VerificationsContent() {
   const [search, setSearch] = useState("")
   const verificationLogs = useStore((state) => state.verificationLogs)
 
+  const getStatusConfig = (status: string) => {
+    const normalized = (status || "").toLowerCase() as PropertyStatus
+    return statusConfig[normalized] || { label: status || "Unknown", variant: "default" }
+  }
+
   const handleAction = (action: string) => {
     toast.info(`${action} requested`, {
       description: "Generating secure report...",
@@ -89,33 +94,36 @@ export function VerificationsContent() {
             </TableHeader>
             <TableBody>
               {filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground">{new Date(log.created_at).toLocaleDateString()}</span>
-                        <span>{formatRelativeTime(log.created_at)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{log.property_name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">
-                          {log.agent_name.charAt(0)}
+                filteredLogs.map((log) => {
+                  const config = getStatusConfig(log.status_at_time)
+                  return (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">{new Date(log.created_at).toLocaleDateString()}</span>
+                          <span>{formatRelativeTime(log.created_at)}</span>
                         </div>
-                        <span className="text-sm">{log.agent_name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusConfig[log.status_at_time].variant} className="text-[10px] uppercase font-bold">
-                        {statusConfig[log.status_at_time].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground italic max-w-xs truncate">
-                      &quot;{log.notes}&quot;
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell className="font-medium">{log.property_name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">
+                            {log.agent_name.charAt(0)}
+                          </div>
+                          <span className="text-sm">{log.agent_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={config.variant as "default" | "success" | "warning" | "error" | "secondary" | "info" | null | undefined} className="text-[10px] uppercase font-bold">
+                          {config.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground italic max-w-xs truncate">
+                        &quot;{log.notes}&quot;
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">

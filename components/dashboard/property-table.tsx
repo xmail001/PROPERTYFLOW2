@@ -39,6 +39,11 @@ export function PropertyTable({ search = "" }: { search?: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const { properties, verifyProperty, deleteProperty, settings } = useStore()
 
+  const getStatusConfig = (status: string) => {
+    const normalized = (status || "").toLowerCase() as PropertyStatus
+    return statusConfig[normalized] || { label: status || "Unknown", variant: "default" }
+  }
+
   const filteredProperties = properties.filter(p => 
     p.title.toLowerCase().includes(search.toLowerCase()) ||
     p.location.toLowerCase().includes(search.toLowerCase()) ||
@@ -79,72 +84,76 @@ export function PropertyTable({ search = "" }: { search?: string }) {
         </TableHeader>
         <TableBody>
           {filteredProperties.length > 0 ? (
-            filteredProperties.map((property) => (
-              <TableRow key={property.id} className="group transition-colors hover:bg-muted/50">
-                <TableCell className="font-medium text-left">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold">{property.title}</span>
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">REF: {property.id}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground text-left">{property.location}</TableCell>
-                <TableCell className="text-left">
-                  <Badge variant={statusConfig[property.status].variant} className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase shadow-sm">
-                    {statusConfig[property.status].label}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground text-left">
-                  {formatRelativeTime(property.last_verified)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuLabel className="text-xs uppercase tracking-widest text-muted-foreground">Actions</DropdownMenuLabel>
-                      <DropdownMenuItem 
-                        className="text-green-600 font-bold focus:bg-green-50 focus:text-green-700 cursor-pointer"
-                        onClick={() => handleVerify(property.id)}
-                        disabled={loadingId === property.id}
-                      >
-                        {loadingId === property.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <ShieldCheck className="mr-2 h-4 w-4" />
-                        )}
-                        Verify Available
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="cursor-pointer"
-                        onClick={() => toast.info("View Details requested", { description: "Opening property file..." })}
-                      >
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="cursor-pointer"
-                        onClick={() => toast.info("Audit Trail requested", { description: "Loading historical logs..." })}
-                      >
-                        <History className="mr-2 h-4 w-4" />
-                        Audit Trail
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
-                        onClick={() => handleDelete(property.id)}
-                      >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete Listing
-                      </DropdownMenuItem>
-                      </DropdownMenuContent>                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
+            filteredProperties.map((property) => {
+              const config = getStatusConfig(property.status)
+              return (
+                <TableRow key={property.id} className="group transition-colors hover:bg-muted/50">
+                  <TableCell className="font-medium text-left">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{property.title}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">REF: {property.id}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground text-left">{property.location}</TableCell>
+                  <TableCell className="text-left">
+                    <Badge variant={config.variant as "default" | "success" | "warning" | "error" | "secondary" | "info" | null | undefined} className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase shadow-sm">
+                      {config.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground text-left">
+                    {formatRelativeTime(property.last_verified)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuLabel className="text-xs uppercase tracking-widest text-muted-foreground">Actions</DropdownMenuLabel>
+                        <DropdownMenuItem 
+                          className="text-green-600 font-bold focus:bg-green-50 focus:text-green-700 cursor-pointer"
+                          onClick={() => handleVerify(property.id)}
+                          disabled={loadingId === property.id}
+                        >
+                          {loadingId === property.id ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <ShieldCheck className="mr-2 h-4 w-4" />
+                          )}
+                          Verify Available
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="cursor-pointer"
+                          onClick={() => toast.info("View Details requested", { description: "Opening property file..." })}
+                        >
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="cursor-pointer"
+                          onClick={() => toast.info("Audit Trail requested", { description: "Loading historical logs..." })}
+                        >
+                          <History className="mr-2 h-4 w-4" />
+                          Audit Trail
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-red-600 focus:bg-red-50 focus:text-red-700 cursor-pointer"
+                          onClick={() => handleDelete(property.id)}
+                        >
+                          <Trash className="mr-2 h-4 w-4" />
+                          Delete Listing
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              )
+            })
           ) : (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
