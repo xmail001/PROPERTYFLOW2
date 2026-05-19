@@ -20,33 +20,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, ShieldCheck, ExternalLink, History, Loader2, Trash } from "lucide-react"
-import { formatRelativeTime } from "@/lib/utils"
+import { formatRelativeTime, getStatusInfo } from "@/lib/utils"
 import { toast } from "sonner"
 
 import { useStore } from "@/lib/store"
 
-const statusConfig: Record<string, { label: string; variant: "default" | "success" | "warning" | "error" | "secondary" | "info" }> = {
-  available: { label: "Available", variant: "success" },
-  reserved: { label: "Reserved", variant: "warning" },
-  under_negotiation: { label: "Negotiation", variant: "info" },
-  sold: { label: "Sold", variant: "error" },
-  inactive: { label: "Inactive", variant: "secondary" },
-  verification_required: { label: "Pending Audit", variant: "error" },
-}
-
 export function PropertyTable({ search = "" }: { search?: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const { properties, verifyProperty, deleteProperty, settings } = useStore()
-
-  // ULTRA SAFE STATUS LOOKUP
-  const getStatusInfo = (status: string | null | undefined) => {
-    if (!status) return { label: "No Status", variant: "default" as const }
-    
-    // Convert "Under Negotiation" to "under_negotiation"
-    const key = status.toLowerCase().replace(/\s+/g, '_')
-    
-    return statusConfig[key] || { label: status, variant: "default" as const }
-  }
 
   const filteredProperties = properties.filter(p => 
     p.title?.toLowerCase().includes(search.toLowerCase()) ||

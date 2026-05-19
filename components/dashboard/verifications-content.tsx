@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { formatRelativeTime } from "@/lib/utils"
+import { formatRelativeTime, getStatusInfo } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,25 +10,9 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 
-const statusConfig: Record<string, { label: string; variant: "default" | "success" | "warning" | "error" | "secondary" | "info" }> = {
-  available: { label: "Available", variant: "success" },
-  reserved: { label: "Reserved", variant: "warning" },
-  under_negotiation: { label: "Negotiation", variant: "info" },
-  sold: { label: "Sold", variant: "error" },
-  inactive: { label: "Inactive", variant: "secondary" },
-  verification_required: { label: "Verification Required", variant: "error" },
-}
-
 export function VerificationsContent() {
   const [search, setSearch] = useState("")
   const verificationLogs = useStore((state) => state.verificationLogs)
-
-  // ULTRA SAFE STATUS LOOKUP
-  const getStatusInfo = (status: string | null | undefined) => {
-    if (!status) return { label: "No Status", variant: "default" as const }
-    const key = status.toLowerCase().replace(/\s+/g, '_')
-    return statusConfig[key] || { label: status, variant: "default" as const }
-  }
 
   const handleAction = (action: string) => {
     toast.info(`${action} requested`, {
