@@ -7,11 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Search, Filter, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { PropertyStatus } from "@/lib/types"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 
-const statusConfig: Record<PropertyStatus, { label: string; variant: "success" | "warning" | "error" | "secondary" | "info" | "default" }> = {
+const statusConfig: Record<string, { label: string; variant: "default" | "success" | "warning" | "error" | "secondary" | "info" }> = {
   available: { label: "Available", variant: "success" },
   reserved: { label: "Reserved", variant: "warning" },
   under_negotiation: { label: "Negotiation", variant: "info" },
@@ -24,9 +23,11 @@ export function VerificationsContent() {
   const [search, setSearch] = useState("")
   const verificationLogs = useStore((state) => state.verificationLogs)
 
-  const getStatusConfig = (status: string) => {
-    const normalized = (status || "").toLowerCase() as PropertyStatus
-    return statusConfig[normalized] || { label: status || "Unknown", variant: "default" }
+  // ULTRA SAFE STATUS LOOKUP
+  const getStatusInfo = (status: string | null | undefined) => {
+    if (!status) return { label: "No Status", variant: "default" as const }
+    const key = status.toLowerCase().replace(/\s+/g, '_')
+    return statusConfig[key] || { label: status, variant: "default" as const }
   }
 
   const handleAction = (action: string) => {
@@ -36,8 +37,8 @@ export function VerificationsContent() {
   }
 
   const filteredLogs = verificationLogs.filter(log => 
-    log.property_name.toLowerCase().includes(search.toLowerCase()) ||
-    log.agent_name.toLowerCase().includes(search.toLowerCase())
+    log.property_name?.toLowerCase().includes(search.toLowerCase()) ||
+    log.agent_name?.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -95,7 +96,7 @@ export function VerificationsContent() {
             <TableBody>
               {filteredLogs.length > 0 ? (
                 filteredLogs.map((log) => {
-                  const config = getStatusConfig(log.status_at_time)
+                  const info = getStatusInfo(log.status_at_time)
                   return (
                     <TableRow key={log.id}>
                       <TableCell className="text-xs text-muted-foreground">
@@ -108,14 +109,14 @@ export function VerificationsContent() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">
-                            {log.agent_name.charAt(0)}
+                            {log.agent_name ? log.agent_name.charAt(0) : "A"}
                           </div>
-                          <span className="text-sm">{log.agent_name}</span>
+                          <span className="text-sm">{log.agent_name || "Unknown Agent"}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={config.variant as "default" | "success" | "warning" | "error" | "secondary" | "info" | null | undefined} className="text-[10px] uppercase font-bold">
-                          {config.label}
+                        <Badge variant={info.variant} className="text-[10px] uppercase font-bold">
+                          {info.label}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground italic max-w-xs truncate">

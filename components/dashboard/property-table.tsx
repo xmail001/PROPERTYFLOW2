@@ -21,12 +21,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, ShieldCheck, ExternalLink, History, Loader2, Trash } from "lucide-react"
 import { formatRelativeTime } from "@/lib/utils"
-import { PropertyStatus } from "@/lib/types"
 import { toast } from "sonner"
 
 import { useStore } from "@/lib/store"
 
-const statusConfig: Record<PropertyStatus, { label: string; variant: "success" | "warning" | "error" | "secondary" | "info" | "default" }> = {
+const statusConfig: Record<string, { label: string; variant: "default" | "success" | "warning" | "error" | "secondary" | "info" }> = {
   available: { label: "Available", variant: "success" },
   reserved: { label: "Reserved", variant: "warning" },
   under_negotiation: { label: "Negotiation", variant: "info" },
@@ -39,25 +38,30 @@ export function PropertyTable({ search = "" }: { search?: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const { properties, verifyProperty, deleteProperty, settings } = useStore()
 
-  const getStatusConfig = (status: string) => {
-    const normalized = (status || "").toLowerCase() as PropertyStatus
-    return statusConfig[normalized] || { label: status || "Unknown", variant: "default" }
+  // ULTRA SAFE STATUS LOOKUP
+  const getStatusInfo = (status: string | null | undefined) => {
+    if (!status) return { label: "No Status", variant: "default" as const }
+    
+    // Convert "Under Negotiation" to "under_negotiation"
+    const key = status.toLowerCase().replace(/\s+/g, '_')
+    
+    return statusConfig[key] || { label: status, variant: "default" as const }
   }
 
   const filteredProperties = properties.filter(p => 
-    p.title.toLowerCase().includes(search.toLowerCase()) ||
-    p.location.toLowerCase().includes(search.toLowerCase()) ||
-    p.id.toLowerCase().includes(search.toLowerCase())
+    p.title?.toLowerCase().includes(search.toLowerCase()) ||
+    p.location?.toLowerCase().includes(search.toLowerCase()) ||
+    p.id?.toLowerCase().includes(search.toLowerCase())
   )
 
   const handleVerify = async (id: string) => {
     setLoadingId(id)
     try {
-      await verifyProperty(id, settings.userName, "Manual verification performed via dashboard.")
+      await verifyProperty(id, settings.userName, "Manual verification performed.")
       setLoadingId(null)
       toast.success("Property verified successfully")
     } catch (error) {
-      console.error("Verification failed", error)
+      console.error(error)
       setLoadingId(null)
       toast.error("Verification failed")
     }
@@ -66,7 +70,7 @@ export function PropertyTable({ search = "" }: { search?: string }) {
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this listing?")) {
       await deleteProperty(id)
-      toast.success("Property removed from inventory")
+      toast.success("Property removed")
     }
   }
 
@@ -85,19 +89,19 @@ export function PropertyTable({ search = "" }: { search?: string }) {
         <TableBody>
           {filteredProperties.length > 0 ? (
             filteredProperties.map((property) => {
-              const config = getStatusConfig(property.status)
+              const info = getStatusInfo(property.status)
               return (
                 <TableRow key={property.id} className="group transition-colors hover:bg-muted/50">
                   <TableCell className="font-medium text-left">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col text-left">
                       <span className="text-sm font-semibold">{property.title}</span>
                       <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60">REF: {property.id}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground text-left">{property.location}</TableCell>
                   <TableCell className="text-left">
-                    <Badge variant={config.variant as "default" | "success" | "warning" | "error" | "secondary" | "info" | null | undefined} className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase shadow-sm">
-                      {config.label}
+                    <Badge variant={info.variant} className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase shadow-sm">
+                      {info.label}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground text-left">
@@ -126,17 +130,11 @@ export function PropertyTable({ search = "" }: { search?: string }) {
                           Verify Available
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          className="cursor-pointer"
-                          onClick={() => toast.info("View Details requested", { description: "Opening property file..." })}
-                        >
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Opening details...")}>
                           <ExternalLink className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="cursor-pointer"
-                          onClick={() => toast.info("Audit Trail requested", { description: "Loading historical logs..." })}
-                        >
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Audit log requested...")}>
                           <History className="mr-2 h-4 w-4" />
                           Audit Trail
                         </DropdownMenuItem>
