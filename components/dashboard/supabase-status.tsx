@@ -1,8 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Database, ShieldCheck, AlertTriangle, Code, Copy, Check } from "lucide-react"
+import { Database, ShieldCheck, AlertTriangle, Code, Copy, Check, RotateCcw, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useStore } from "@/lib/store"
+import { isSupabaseConfigured } from "@/lib/supabase"
 import {
   Dialog,
   DialogContent,
@@ -14,42 +16,37 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function SupabaseStatus() {
-  const [isConnected] = React.useState(() => {
-    // Check if Supabase env vars are present (client-side safe check)
-    if (typeof process === 'undefined') return false
-    return !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  })
+  const { isLive, syncData, isLoading } = useStore()
   const [copied, setCopied] = React.useState(false)
+
+  const isConnected = isLive && isSupabaseConfigured
 
   const sqlSchema = `-- Run this in your Supabase SQL Editor:
 
-CREATE TYPE property_status AS ENUM (
-  'available', 'reserved', 'under_negotiation', 'sold', 'inactive', 'verification_required'
+CREATE TABLE public.properties (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_code text,
+  title text NOT NULL,
+  price numeric,
+  location text,
+  type text,
+  status text DEFAULT 'Available',
+  assigned_agent text,
+  last_verified timestamp DEFAULT now(),
+  owner_confirmed boolean DEFAULT false,
+  agent_confirmed boolean DEFAULT false,
+  created_at timestamp DEFAULT now()
 );
 
-CREATE TABLE properties (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL,
-  city TEXT NOT NULL,
-  status property_status DEFAULT 'verification_required',
-  last_verified_at TIMESTAMPTZ DEFAULT NOW(),
-  price NUMERIC,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE verification_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
-  agent_name TEXT,
-  status_at_time property_status,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE public.verification_logs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  property_id uuid REFERENCES properties(id) ON DELETE CASCADE,
+  property_name text,
+  agent_name text,
+  status_at_time text,
+  notes text,
+  created_at timestamp DEFAULT now()
 );`
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(sqlSchema)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   return (
     <Dialog>
@@ -62,17 +59,28 @@ CREATE TABLE verification_logs (
             </>
           ) : (
             <>
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Mock Data Mode</span>
+              <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Syncing / Mock Mode</span>
             </>
           )}
         </button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <Database className="h-5 w-5 text-primary" />
-            <DialogTitle>Database Connection Guide</DialogTitle>
+          <div className="flex items-center justify-between w-full pr-8">
+            <div className="flex items-center gap-2">
+              <Database className="h-5 w-5 text-primary" />
+              <DialogTitle>Database Connection</DialogTitle>
+            </div>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => syncData()}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4 mr-2" />}
+              Refresh Sync
+            </Button>
           </div>
           <DialogDescription>
             {isConnected 
@@ -81,6 +89,7 @@ CREATE TABLE verification_logs (
             }
           </DialogDescription>
         </DialogHeader>
+// ... rest of dialog unchanged
 
         <Tabs defaultValue="schema" className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
