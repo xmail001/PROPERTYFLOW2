@@ -17,9 +17,20 @@ import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { formatRelativeTime, downloadCSV } from "@/lib/utils"
 
+import { useEffect } from "react"
+
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false)
   const [search, setSearch] = useState("")
   const { verificationLogs, properties, runComplianceCheck } = useStore()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <div className="flex h-full items-center justify-center p-20 text-muted-foreground">Loading dashboard environment...</div>
+  }
 
   const handleExport = () => {
     downloadCSV(properties, "propertyflow-inventory")
