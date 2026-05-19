@@ -84,11 +84,10 @@ export const useStore = create<AppState>()(
             properties: [newProp, ...state.properties] 
           }))
           toast.success("Property saved to Supabase")
-        } catch (error: unknown) {
-          const dbError = error as { message?: string }
+        } catch (error: any) {
           console.error("Failed to add property to Supabase:", error)
           toast.error("Supabase Sync Failed", {
-            description: dbError.message || "Property saved locally, but not to database. Ensure RLS policies allow inserts."
+            description: "Property saved locally, but not to database. Ensure RLS policies allow inserts."
           })
           
           const localProp: Property = {
@@ -158,7 +157,18 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'propertyflow-storage',
-      storage: createJSONStorage(() => localStorage),
+      // Safe storage factory to prevent crashes during SSR
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage
+        }
+        // Fallback for server-side rendering
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {},
+        }
+      }),
     }
   )
 )
