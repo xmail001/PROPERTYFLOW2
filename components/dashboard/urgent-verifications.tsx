@@ -16,7 +16,7 @@ export function UrgentVerifications() {
   // or last_verified_at is older than 48 hours (simulated)
   const urgentProperties = properties.filter(p => 
     p.status === 'verification_required' || 
-    (new Date().getTime() - new Date(p.last_verified_at).getTime() > 1000 * 60 * 60 * 48)
+    (new Date().getTime() - new Date(p.last_verified).getTime() > 1000 * 60 * 60 * 48)
   )
 
   const handleVerify = (id: string, name: string) => {
@@ -55,23 +55,23 @@ export function UrgentVerifications() {
             <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
-                <CardTitle className="text-base">{property.name}</CardTitle>
+                <CardTitle className="text-base">{property.title}</CardTitle>
                 <Badge variant="error" className="text-[10px] uppercase font-bold">Overdue</Badge>
               </div>
-              <CardDescription>{property.city}</CardDescription>
+              <CardDescription>{property.location}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  Last verified: {formatRelativeTime(property.last_verified_at)}
+                  Last verified: {formatRelativeTime(property.last_verified)}
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button 
                   size="sm" 
                   className="w-full bg-red-600 hover:bg-red-700 text-white"
-                  onClick={() => handleVerify(property.id, property.name)}
+                  onClick={() => handleVerify(property.id, property.title)}
                 >
                   <ShieldCheck className="mr-2 h-4 w-4" />
                   Verify Now
@@ -80,7 +80,7 @@ export function UrgentVerifications() {
                   size="sm" 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => handleContact(property.name)}
+                  onClick={() => handleContact(property.title)}
                 >
                   Contact Owner
                 </Button>

@@ -34,7 +34,7 @@ export function AnalyticsCharts() {
 
   // Dynamic city data
   const cityCounts = properties.reduce((acc, p) => {
-    acc[p.city] = (acc[p.city] || 0) + 1
+    acc[p.location] = (acc[p.location] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 

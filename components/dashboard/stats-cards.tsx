@@ -11,7 +11,7 @@ export function StatsCards() {
   
   const now = new Date()
   const last24h = properties.filter(p => 
-    (now.getTime() - new Date(p.last_verified_at).getTime()) < 1000 * 60 * 60 * 24
+    (now.getTime() - new Date(p.last_verified).getTime()) < 1000 * 60 * 60 * 24
   ).length
 
   const inventoryHealth = properties.length > 0 
