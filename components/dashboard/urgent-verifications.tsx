@@ -1,33 +1,79 @@
 "use client"
 
-import { formatRelativeTime } from "@/lib/utils"
+import { formatRelativeTime, getStatusInfo } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertCircle, ShieldCheck, Clock } from "lucide-react"
+import { AlertCircle, ShieldCheck, Clock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-
 import { useStore } from "@/lib/store"
+import { triggerAutomation } from "@/lib/api"
+import { useState } from "react"
 
 export function UrgentVerifications() {
-  const { properties, verifyProperty } = useStore()
+  const { properties, verifyProperty, settings } = useStore()
+  const [activeActionId, setActiveActionId] = useState<string | null>(null)
 
   // Filter properties that need verification: status is 'verification_required' 
-  // or last_verified_at is older than 48 hours (simulated)
+  // or last_verified is older than 48 hours (simulated)
   const urgentProperties = properties.filter(p => 
     p.status === 'verification_required' || 
     (new Date().getTime() - new Date(p.last_verified).getTime() > 1000 * 60 * 60 * 48)
   )
 
-  const handleVerify = (id: string, name: string) => {
-    verifyProperty(id, "Ismail Bourhim", `Urgent verification completed for ${name}.`)
-    toast.success(`Verification completed for ${name}`)
+  const handleVerify = async (property: any) => {
+    setActiveActionId(`v-${property.id}`)
+    try {
+      await verifyProperty(property.id, settings.userName, `Urgent verification completed for ${property.title}.`)
+      
+      // Notify n8n that verification is done
+      if (settings.n8nWebhookUrl) {
+        await triggerAutomation(settings.n8nWebhookUrl, 'verification_complete', {
+          property_id: property.id,
+          property_title: property.title,
+          agent: settings.userName,
+          status: 'available'
+        })
+      }
+      
+      toast.success(`Verification completed for ${property.title}`)
+    } catch (e) {
+      toast.error("Failed to complete verification")
+    } finally {
+      setActiveActionId(null)
+    }
   }
 
-  const handleContact = (name: string) => {
-    toast.info(`Contacting owner of ${name}`, {
-      description: "Initiating secure communication channel...",
-    })
+  const handleContact = async (property: any) => {
+    setActiveActionId(`c-${property.id}`)
+    try {
+      toast.info(`Contacting owner of ${property.title}`, {
+        description: "Initiating secure n8n automation...",
+      })
+
+      // Notify n8n to send the Magic Link / WhatsApp
+      if (settings.n8nWebhookUrl) {
+        await triggerAutomation(settings.n8nWebhookUrl, 'owner_verification_request', {
+          property_id: property.id,
+          property_title: property.title,
+          location: property.location,
+          price: property.price,
+          agent: settings.userName,
+          owner_contact: "SIMULATED_PHONE" // In production, this would be property.owner_phone
+        })
+        toast.success("n8n Workflow Triggered", {
+          description: "WhatsApp request is being dispatched to the owner."
+        })
+      } else {
+        toast.error("n8n Not Configured", {
+          description: "Please add your Webhook URL in Settings."
+        })
+      }
+    } catch (e) {
+      toast.error("n8n Connection Failed")
+    } finally {
+      setActiveActionId(null)
+    }
   }
 
   if (urgentProperties.length === 0) {
@@ -71,18 +117,20 @@ export function UrgentVerifications() {
                 <Button 
                   size="sm" 
                   className="w-full bg-red-600 hover:bg-red-700 text-white"
-                  onClick={() => handleVerify(property.id, property.title)}
+                  onClick={() => handleVerify(property)}
+                  disabled={activeActionId === `v-${property.id}`}
                 >
-                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  {activeActionId === `v-${property.id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
                   Verify Now
                 </Button>
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="w-full"
-                  onClick={() => handleContact(property.title)}
+                  onClick={() => handleContact(property)}
+                  disabled={activeActionId === `c-${property.id}`}
                 >
-                  Contact Owner
+                  {activeActionId === `c-${property.id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : "Contact Owner"}
                 </Button>
               </div>
             </CardContent>
