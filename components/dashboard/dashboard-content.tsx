@@ -17,21 +17,49 @@ import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { formatRelativeTime, downloadCSV, getInitials } from "@/lib/utils"
 
+import { triggerAutomation } from "@/lib/api"
+
 export function DashboardContent() {
   const [search, setSearch] = useState("")
-  const { verificationLogs, properties, runComplianceCheck } = useStore()
+  const { verificationLogs, properties, runComplianceCheck, settings } = useStore()
 
-  const handleExport = () => {
+  const handleExport = async () => {
     downloadCSV(properties, "propertyflow-inventory")
-    toast.success("Inventory exported", { description: "Your CSV file is ready." })
+    toast.success("Inventory exported")
+    
+    // Trigger n8n if URL is provided
+    if (settings.n8nWebhookUrl) {
+      try {
+        await triggerAutomation(settings.n8nWebhookUrl, 'inventory_export', { 
+          agent: settings.userName,
+          count: properties.length 
+        })
+      } catch (e) {
+        console.error("n8n sync failed")
+      }
+    }
   }
 
-  const handleComplianceCheck = () => {
+  const handleComplianceCheck = async () => {
     const { flaggedCount } = runComplianceCheck()
+    
     if (flaggedCount > 0) {
       toast.warning("Compliance check completed", {
         description: `${flaggedCount} stale listings have been flagged for verification.`,
       })
+      
+      // Trigger n8n for urgent alerts
+      if (settings.n8nWebhookUrl) {
+        try {
+          await triggerAutomation(settings.n8nWebhookUrl, 'compliance_alert', {
+            flagged_count: flaggedCount,
+            agent: settings.userName
+          })
+          toast.success("n8n Alerts sent to team")
+        } catch (e) {
+          toast.error("n8n connection failed")
+        }
+      }
     } else {
       toast.success("Compliance check completed", {
         description: "All listings are within the verification threshold.",

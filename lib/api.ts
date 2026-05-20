@@ -107,3 +107,25 @@ export async function deletePropertyFromDb(id: string) {
 
   if (error) throw error
 }
+
+export async function triggerAutomation(webhookUrl: string, event: string, data: any) {
+  if (!webhookUrl) return
+
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      event,
+      timestamp: new Date().toISOString(),
+      payload: data
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to trigger n8n workflow')
+  }
+
+  return response.json()
+}
