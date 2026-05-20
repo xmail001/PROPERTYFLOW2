@@ -8,13 +8,13 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Building, ShieldCheck, Bell, Save, ShieldAlert } from "lucide-react"
+import { User, Building, ShieldCheck, Bell, Save, ShieldAlert, RotateCcw } from "lucide-react"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { getInitials } from "@/lib/utils"
 
 export function SettingsContent() {
-  const { settings, updateSettings } = useStore()
+  const { settings, updateSettings, syncData } = useStore()
 
   const handleSave = (section: string) => {
     toast.success(`${section} updated successfully`, {
@@ -52,6 +52,10 @@ export function SettingsContent() {
           <TabsTrigger value="notifications" className="justify-start gap-2 w-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
             <Bell className="h-4 w-4" />
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="diagnostics" className="justify-start gap-2 w-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+            <RotateCcw className="h-4 w-4" />
+            System Fix
           </TabsTrigger>
         </TabsList>
 
@@ -223,6 +227,47 @@ export function SettingsContent() {
                     checked={settings.emailSummaries} 
                     onCheckedChange={(val) => handleInputChange("emailSummaries", val)}
                   />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="diagnostics">
+            <Card className="border-none shadow-md">
+              <CardHeader>
+                <CardTitle>System Diagnostics</CardTitle>
+                <CardDescription>Tools to resolve sync issues or clear browser cache.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 text-left">
+                <div className="flex items-center justify-between rounded-lg border p-4 bg-amber-50/50 dark:bg-amber-950/10">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Force Cloud Sync</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Overwrites local data with the latest from Supabase.
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => {
+                    syncData()
+                    toast.success("Cloud synchronization started")
+                  }}>
+                    Sync Now
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4 bg-red-50/50 dark:bg-red-950/10 border-red-100 dark:border-red-900/20">
+                  <div className="space-y-0.5">
+                    <Label className="text-base text-red-600 font-bold">Hard Reset</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Clears all browser memory. Use if the dashboard feels broken.
+                    </p>
+                  </div>
+                  <Button variant="destructive" size="sm" onClick={() => {
+                    if (confirm("This will clear all browser settings. Are you sure?")) {
+                      localStorage.clear()
+                      window.location.reload()
+                    }
+                  }}>
+                    Clear & Reload
+                  </Button>
                 </div>
               </CardContent>
             </Card>

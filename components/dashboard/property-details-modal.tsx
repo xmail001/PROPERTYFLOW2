@@ -34,10 +34,10 @@ export function PropertyDetailsModal({
         <div className="pt-10 px-8 pb-8 space-y-8 text-left">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight">{property.title}</h2>
+              <h2 className="text-2xl font-bold tracking-tight">{property.title || "Untitled Property"}</h2>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span className="text-sm">{property.location}</span>
+                <span className="text-sm">{property.location || "No Location Specified"}</span>
               </div>
             </div>
             <Badge variant={status.variant} className="text-xs uppercase font-bold py-1 px-3">
@@ -45,18 +45,18 @@ export function PropertyDetailsModal({
             </Badge>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-6 bg-muted/30 p-4 rounded-lg border border-border/50">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Reference ID</p>
-              <p className="text-sm font-mono font-medium">{property.id}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Live Database ID</p>
+              <p className="text-[11px] font-mono font-medium truncate" title={property.id}>{property.id}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Market Valuation</p>
-              <p className="text-sm font-bold text-primary">{formatCurrency(property.price)}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cloud Valuation</p>
+              <p className="text-sm font-bold text-primary">{formatCurrency(property.price || 0)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Property Type</p>
-              <p className="text-sm font-medium">{property.type || "Residential"}</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Category</p>
+              <p className="text-sm font-medium">{property.type || "Not Categorized"}</p>
             </div>
           </div>
 
