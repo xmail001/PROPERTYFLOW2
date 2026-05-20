@@ -23,6 +23,8 @@ interface AppSettings {
   verificationThreshold: string
   pushNotifications: boolean
   emailSummaries: boolean
+  n8nWebhookUrl: string
+  triggerOnStatusChange: boolean
 }
 
 interface AppState {
@@ -60,6 +62,8 @@ export const useStore = create<AppState>()(
         verificationThreshold: "48h",
         pushNotifications: true,
         emailSummaries: false,
+        n8nWebhookUrl: "",
+        triggerOnStatusChange: true,
       },
 
       syncData: async () => {
@@ -70,7 +74,6 @@ export const useStore = create<AppState>()(
           const props = await fetchProperties()
           const logs = await fetchVerificationLogs()
           
-          // If we successfully reached Supabase, use that data (even if it is empty)
           set({ 
             properties: props || [], 
             verificationLogs: logs || [],
@@ -100,7 +103,6 @@ export const useStore = create<AppState>()(
           const err = error as { message?: string }
           console.error("Failed to add property:", error)
           
-          // Local fallback if not live
           if (!get().isLive) {
             const localProp: Property = {
               ...propertyData,

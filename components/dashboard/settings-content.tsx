@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Building, ShieldCheck, Bell, Save, ShieldAlert, RotateCcw } from "lucide-react"
+import { User, Building, ShieldCheck, Bell, Save, ShieldAlert, RotateCcw, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { getInitials } from "@/lib/utils"
@@ -48,6 +48,10 @@ export function SettingsContent() {
           <TabsTrigger value="compliance" className="justify-start gap-2 w-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
             <ShieldCheck className="h-4 w-4" />
             Verification Rules
+          </TabsTrigger>
+          <TabsTrigger value="automation" className="justify-start gap-2 w-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+            <Zap className="h-4 w-4" />
+            n8n Automation
           </TabsTrigger>
           <TabsTrigger value="notifications" className="justify-start gap-2 w-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
             <Bell className="h-4 w-4" />
@@ -201,6 +205,47 @@ export function SettingsContent() {
               </CardContent>
               <CardFooter className="border-t bg-muted/20 px-6 py-4">
                 <Button className="ml-auto" onClick={() => handleSave("Compliance rules")}>Update Rules</Button>
+              </CardFooter>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="automation">
+            <Card className="border-none shadow-md">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-primary" />
+                  <CardTitle>n8n Automation Settings</CardTitle>
+                </div>
+                <CardDescription>Connect your dashboard to external n8n workflows for autonomous operations.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="webhook-url">n8n Webhook URL</Label>
+                  <Input 
+                    id="webhook-url" 
+                    placeholder="https://n8n.your-agency.com/webhook/..." 
+                    value={settings.n8nWebhookUrl}
+                    onChange={(e) => handleInputChange("n8nWebhookUrl", e.target.value)}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    This URL will receive a POST request whenever an automated trigger is fired.
+                  </p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Trigger on Status Change</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send data to n8n when a property moves to Available, Reserved, or Sold.
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={settings.triggerOnStatusChange} 
+                    onCheckedChange={(val) => handleInputChange("triggerOnStatusChange", val)}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="border-t bg-muted/20 px-6 py-4">
+                <Button className="ml-auto" onClick={() => handleSave("Automation settings")}>Connect n8n</Button>
               </CardFooter>
             </Card>
           </TabsContent>
