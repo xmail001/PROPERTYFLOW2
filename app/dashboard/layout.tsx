@@ -10,13 +10,14 @@ import { signOut } from "@/lib/auth"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { useEffect } from "react"
+import { getInitials } from "@/lib/utils"
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const syncData = useStore((state) => state.syncData)
+  const { syncData, settings } = useStore()
 
   useEffect(() => {
     syncData()
@@ -98,10 +99,12 @@ export default function DashboardLayout({
         <div className="border-t p-4">
           <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
             <Avatar className="h-8 w-8 border">
-              <AvatarFallback className="text-[10px] bg-primary text-primary-foreground font-bold">IB</AvatarFallback>
+              <AvatarFallback className="text-[10px] bg-primary text-primary-foreground font-bold">
+                {getInitials(settings.userName)}
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden text-left">
-              <span className="truncate text-xs font-bold text-foreground leading-tight">Ismail Bourhim</span>
+              <span className="truncate text-xs font-bold text-foreground leading-tight">{settings.userName}</span>
               <span className="truncate text-[10px] text-muted-foreground font-medium">Administrator</span>
             </div>
           </div>
@@ -140,7 +143,9 @@ export default function DashboardLayout({
               <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-red-600 ring-2 ring-card"></span>
             </Button>
             <Avatar className="h-9 w-9 border-2 border-primary/10 shadow-sm">
-              <AvatarFallback className="text-[10px] font-bold">IB</AvatarFallback>
+              <AvatarFallback className="text-[10px] font-bold">
+                {getInitials(settings.userName)}
+              </AvatarFallback>
             </Avatar>
           </div>
         </header>

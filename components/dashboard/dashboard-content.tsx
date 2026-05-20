@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { FileCheck, Download, Filter, Zap, Search } from "lucide-react"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
-import { formatRelativeTime, downloadCSV } from "@/lib/utils"
+import { formatRelativeTime, downloadCSV, getInitials } from "@/lib/utils"
 
 export function DashboardContent() {
   const [search, setSearch] = useState("")
@@ -52,7 +52,7 @@ export function DashboardContent() {
     time: formatRelativeTime(log.created_at),
     color: log.status_at_time === 'available' ? 'bg-green-500' : 'bg-blue-500',
     agent: log.agent_name,
-    avatar: log.agent_name.charAt(0)
+    avatar: getInitials(log.agent_name)
   }))
 
   return (
@@ -131,9 +131,9 @@ export function DashboardContent() {
                     recentActivities.map((activity, i) => (
                       <div key={i} className="flex items-center gap-4">
                         <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
-                          <AvatarFallback className="text-[10px] bg-muted">{activity.avatar}</AvatarFallback>
+                          <AvatarFallback className="text-[10px] bg-muted font-bold">{activity.avatar}</AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1 space-y-1 text-left">
                           <p className="text-sm font-semibold leading-none">{activity.name}</p>
                           <p className="text-[11px] text-muted-foreground">
                             {activity.action} by <span className="text-foreground font-medium">{activity.agent}</span>
@@ -162,7 +162,7 @@ export function DashboardContent() {
 
           <Card className="border-none shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div>
+              <div className="text-left">
                 <CardTitle>Verified Property Table</CardTitle>
                 <CardDescription>Inventory with real-time availability status.</CardDescription>
               </div>

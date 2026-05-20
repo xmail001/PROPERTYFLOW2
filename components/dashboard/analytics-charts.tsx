@@ -56,21 +56,19 @@ export function AnalyticsCharts() {
             <BarChart data={statusData}>
               <XAxis
                 dataKey="name"
-                stroke="currentColor"
-                className="text-muted-foreground"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                stroke="currentColor"
-                className="text-muted-foreground"
+                stroke="hsl(var(--muted-foreground))"
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
               <Tooltip 
-                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
+                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.2 }}
                 contentStyle={{ 
                   backgroundColor: "hsl(var(--card))", 
                   borderColor: "hsl(var(--border))",
@@ -105,7 +103,8 @@ export function AnalyticsCharts() {
                   outerRadius={85}
                   paddingAngle={8}
                   dataKey="value"
-                  stroke="none"
+                  stroke="hsl(var(--card))"
+                  strokeWidth={2}
                 >
                   {cityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -122,7 +121,7 @@ export function AnalyticsCharts() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-bold">{properties.length}</span>
+              <span className="text-3xl font-bold text-foreground">{properties.length}</span>
               <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Total Units</span>
             </div>
           </div>
@@ -130,7 +129,7 @@ export function AnalyticsCharts() {
             {cityData.map((city) => (
               <div key={city.name} className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full" style={{ backgroundColor: city.color }} />
-                <div className="flex flex-col">
+                <div className="flex flex-col text-left">
                   <span className="text-xs font-semibold">{city.name}</span>
                   <span className="text-[10px] text-muted-foreground">{city.value} units</span>
                 </div>

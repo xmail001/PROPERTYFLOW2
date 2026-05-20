@@ -24,9 +24,13 @@ import { formatRelativeTime, getStatusInfo } from "@/lib/utils"
 import { toast } from "sonner"
 
 import { useStore } from "@/lib/store"
+import { PropertyDetailsModal } from "./property-details-modal"
+import { Property } from "@/lib/types"
 
 export function PropertyTable({ search = "" }: { search?: string }) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const { properties, verifyProperty, deleteProperty, settings } = useStore()
 
   const filteredProperties = properties.filter(p => 
@@ -53,6 +57,11 @@ export function PropertyTable({ search = "" }: { search?: string }) {
       await deleteProperty(id)
       toast.success("Property removed")
     }
+  }
+
+  const handleViewDetails = (property: Property) => {
+    setSelectedProperty(property)
+    setDetailsOpen(true)
   }
 
   return (
@@ -111,7 +120,10 @@ export function PropertyTable({ search = "" }: { search?: string }) {
                           Verify Available
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer" onClick={() => toast.info("Opening details...")}>
+                        <DropdownMenuItem 
+                          className="cursor-pointer" 
+                          onClick={() => handleViewDetails(property)}
+                        >
                           <ExternalLink className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
@@ -142,6 +154,12 @@ export function PropertyTable({ search = "" }: { search?: string }) {
           )}
         </TableBody>
       </Table>
+
+      <PropertyDetailsModal 
+        property={selectedProperty} 
+        open={detailsOpen} 
+        onOpenChange={setDetailsOpen} 
+      />
     </div>
   )
 }

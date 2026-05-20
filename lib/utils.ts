@@ -17,7 +17,7 @@ export function formatRelativeTime(dateString: string | null | undefined) {
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  } catch (e) {
+  } catch {
     return 'Date error'
   }
 }
@@ -80,4 +80,13 @@ export const getStatusInfo = (status: string | null | undefined) => {
   const key = status.toLowerCase().replace(/[^a-z]/g, '')
   
   return statusConfig[key] || { label: status, variant: "default" as const }
+}
+
+export function getInitials(name: string) {
+  if (!name) return "U"
+  const parts = name.split(" ")
+  if (parts.length >= 2) {
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase()
+  }
+  return parts[0].charAt(0).toUpperCase()
 }

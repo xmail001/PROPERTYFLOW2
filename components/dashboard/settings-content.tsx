@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, Building, ShieldCheck, Bell, Save, ShieldAlert } from "lucide-react"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
+import { getInitials } from "@/lib/utils"
 
 export function SettingsContent() {
   const { settings, updateSettings } = useStore()
@@ -65,7 +66,7 @@ export function SettingsContent() {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>IB</AvatarFallback>
+                    <AvatarFallback>{getInitials(settings.userName)}</AvatarFallback>
                   </Avatar>
                   <Button variant="outline" size="sm" onClick={() => toast.info("Avatar update coming soon")}>Change Avatar</Button>
                 </div>

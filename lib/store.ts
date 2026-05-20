@@ -76,8 +76,6 @@ export const useStore = create<AppState>()(
             verificationLogs: logs || [],
             isLive: true 
           })
-          
-          console.log("Supabase Sync Complete:", props?.length, "properties found.")
         } catch (error) {
           console.error("Sync failed:", error)
           set({ isLive: false })
@@ -98,7 +96,8 @@ export const useStore = create<AppState>()(
             properties: [newProp, ...state.properties] 
           }))
           toast.success("Saved to Cloud Database")
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const err = error as { message?: string }
           console.error("Failed to add property:", error)
           
           // Local fallback if not live
@@ -112,7 +111,7 @@ export const useStore = create<AppState>()(
             toast.success("Saved to Local Browser Storage")
           } else {
             toast.error("Cloud Save Failed", {
-              description: error.message || "Please check your Supabase permissions."
+              description: err.message || "Please check your Supabase permissions."
             })
           }
         }

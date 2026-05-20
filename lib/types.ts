@@ -16,6 +16,7 @@ export interface Property {
   last_verified: string; // ISO string
   owner_confirmed: boolean;
   agent_confirmed: boolean;
+  assigned_agent?: string;
   price: number;
   image_url?: string;
   created_at: string;

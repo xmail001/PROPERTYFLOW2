@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Database, ShieldCheck, AlertTriangle, Code, Copy, Check, RotateCcw, Loader2 } from "lucide-react"
+import { Database, ShieldCheck, Code, Copy, Check, RotateCcw, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useStore } from "@/lib/store"
 import { isSupabaseConfigured } from "@/lib/supabase"
@@ -48,6 +48,12 @@ CREATE TABLE public.verification_logs (
   created_at timestamp DEFAULT now()
 );`
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(sqlSchema)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -89,7 +95,6 @@ CREATE TABLE public.verification_logs (
             }
           </DialogDescription>
         </DialogHeader>
-// ... rest of dialog unchanged
 
         <Tabs defaultValue="schema" className="mt-4">
           <TabsList className="grid w-full grid-cols-2">
