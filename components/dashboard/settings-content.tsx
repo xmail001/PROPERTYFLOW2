@@ -8,10 +8,11 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Building, ShieldCheck, Bell, Save, ShieldAlert, RotateCcw, Zap } from "lucide-react"
+import { User, Building, ShieldCheck, Bell, Save, ShieldAlert, RotateCcw, Zap, Send } from "lucide-react"
 import { toast } from "sonner"
 import { useStore } from "@/lib/store"
 import { getInitials } from "@/lib/utils"
+import { triggerAutomation } from "@/lib/api"
 
 export function SettingsContent() {
   const { settings, updateSettings, syncData } = useStore()
@@ -24,6 +25,31 @@ export function SettingsContent() {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     updateSettings({ [field]: value })
+  }
+
+  const handleTestWebhook = async () => {
+    if (!settings.n8nWebhookUrl) {
+      toast.error("No Webhook URL", {
+        description: "Please enter an n8n webhook URL first.",
+      })
+      return
+    }
+
+    const promise = triggerAutomation(settings.n8nWebhookUrl, 'test_connection', {
+      message: "Hello from PropertyFlow!",
+      test_data: {
+        property_id: "test-123",
+        status: "available",
+        timestamp: new Date().toISOString()
+      },
+      agent: settings.userName
+    })
+
+    toast.promise(promise, {
+      loading: 'Sending test payload to n8n...',
+      success: 'Webhook received successfully!',
+      error: 'Failed to connect to n8n. Check your URL.',
+    })
   }
 
   return (
@@ -244,8 +270,12 @@ export function SettingsContent() {
                   />
                 </div>
               </CardContent>
-              <CardFooter className="border-t bg-muted/20 px-6 py-4">
-                <Button className="ml-auto" onClick={() => handleSave("Automation settings")}>Connect n8n</Button>
+              <CardFooter className="border-t bg-muted/20 px-6 py-4 flex justify-between">
+                <Button variant="outline" onClick={handleTestWebhook}>
+                  <Send className="mr-2 h-4 w-4" />
+                  Test Connection
+                </Button>
+                <Button onClick={() => handleSave("Automation settings")}>Connect n8n</Button>
               </CardFooter>
             </Card>
           </TabsContent>

@@ -62,7 +62,7 @@ export const useStore = create<AppState>()(
         verificationThreshold: "48h",
         pushNotifications: true,
         emailSummaries: false,
-        n8nWebhookUrl: "",
+        n8nWebhookUrl: "https://galvanotactic-sharilyn-childing.ngrok-free.dev/webhook-test/property-intake",
         triggerOnStatusChange: true,
       },
 
@@ -93,12 +93,21 @@ export const useStore = create<AppState>()(
       },
 
       addProperty: async (propertyData) => {
+        const { settings } = get()
         try {
           const newProp = await createProperty(propertyData)
           set((state) => ({ 
             properties: [newProp, ...state.properties] 
           }))
           toast.success("Saved to Cloud Database")
+
+          // Trigger n8n webhook automatically
+          if (settings.n8nWebhookUrl) {
+            triggerAutomation(settings.n8nWebhookUrl, 'property_created', {
+              property: newProp,
+              agent: settings.userName
+            }).catch(err => console.error("Auto-webhook failed:", err))
+          }
         } catch (error: unknown) {
           const err = error as { message?: string }
           console.error("Failed to add property:", error)
@@ -111,6 +120,14 @@ export const useStore = create<AppState>()(
             } as Property
             set((state) => ({ properties: [localProp, ...state.properties] }))
             toast.success("Saved to Local Browser Storage")
+
+            // Trigger n8n webhook for local entries too
+            if (settings.n8nWebhookUrl) {
+              triggerAutomation(settings.n8nWebhookUrl, 'property_created_local', {
+                property: localProp,
+                agent: settings.userName
+              }).catch(err => console.error("Auto-webhook failed:", err))
+            }
           } else {
             toast.error("Cloud Save Failed", {
               description: err.message || "Please check your Supabase permissions."

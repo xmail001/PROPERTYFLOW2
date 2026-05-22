@@ -111,21 +111,33 @@ export async function deletePropertyFromDb(id: string) {
 export async function triggerAutomation(webhookUrl: string, event: string, data: any) {
   if (!webhookUrl) return
 
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      event,
-      timestamp: new Date().toISOString(),
-      payload: data
-    }),
-  })
+  console.log(`Triggering automation: ${event} to ${webhookUrl}`)
 
-  if (!response.ok) {
-    throw new Error('Failed to trigger n8n workflow')
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors', // Ensure CORS is handled
+      body: JSON.stringify({
+        event,
+        timestamp: new Date().toISOString(),
+        payload: data
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`Webhook error (${response.status}):`, errorText)
+      throw new Error(`n8n responded with ${response.status}`)
+    }
+
+    const result = await response.json().catch(() => ({ status: 'success' }))
+    console.log('Webhook success:', result)
+    return result
+  } catch (error) {
+    console.error('Network error triggering webhook:', error)
+    throw error
   }
-
-  return response.json()
 }
