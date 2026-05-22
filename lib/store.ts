@@ -7,7 +7,8 @@ import {
   fetchVerificationLogs, 
   createProperty, 
   updatePropertyStatus, 
-  deletePropertyFromDb 
+  deletePropertyFromDb,
+  triggerAutomation 
 } from './api'
 import { isSupabaseConfigured } from './supabase'
 import { toast } from 'sonner'
