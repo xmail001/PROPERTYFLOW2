@@ -1,6 +1,6 @@
 "use client"
 
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Area, AreaChart } from "recharts"
 
 const data = [
   { name: "Mon", total: 12 },
@@ -15,12 +15,18 @@ const data = [
 export function OverviewChart() {
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <LineChart data={data}>
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+          </linearGradient>
+        </defs>
         <CartesianGrid 
           strokeDasharray="3 3" 
           vertical={false} 
           stroke="hsl(var(--muted-foreground))" 
-          opacity={0.1} 
+          opacity={0.2} 
         />
         <XAxis
           dataKey="name"
@@ -39,24 +45,27 @@ export function OverviewChart() {
         />
         <Tooltip 
           contentStyle={{ 
-            backgroundColor: "hsl(var(--card))", 
+            backgroundColor: "hsl(var(--background))", 
             borderColor: "hsl(var(--border))",
             borderRadius: "var(--radius)",
             color: "hsl(var(--foreground))",
-            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.5)",
+            border: "1px solid hsl(var(--border))"
           }}
           itemStyle={{ color: "hsl(var(--primary))", fontWeight: "bold" }}
-          cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1 }}
+          cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1, strokeDasharray: "4 4" }}
         />
-        <Line
+        <Area
           type="monotone"
           dataKey="total"
           stroke="hsl(var(--primary))"
           strokeWidth={3}
-          dot={{ fill: "hsl(var(--card))", stroke: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-          activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2 }}
+          fillOpacity={1}
+          fill="url(#colorTotal)"
+          dot={{ fill: "hsl(var(--background))", stroke: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+          activeDot={{ r: 6, fill: "hsl(var(--primary))", stroke: "hsl(var(--background))", strokeWidth: 2 }}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   )
 }
